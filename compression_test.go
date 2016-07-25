@@ -1,8 +1,9 @@
 package xz
+
 import (
-       "bytes"
-       "io"
-       "testing"
+	"bytes"
+	"io"
+	"testing"
 )
 
 var dataToCompress = `
@@ -33,56 +34,52 @@ var dataToCompress = `
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-` + string([]byte{0,1,2,3,4,254,255})
-
-
-
-
+` + string([]byte{0, 1, 2, 3, 4, 254, 255})
 
 func TestRoundTrip(t *testing.T) {
-     initialReader :=  bytes.NewBufferString(dataToCompress) 
-     var compressedData bytes.Buffer
-     cw := NewCompressionWriter(&compressedData)
-     for {
-        var buffer [4096]byte
-        nRead, readErr := initialReader.Read(buffer[:])
-        if readErr != nil && readErr != io.EOF {
-            panic(readErr)
-        }
-        nWrite, writeErr := cw.Write(buffer[:nRead])
-        if writeErr != nil {
-            panic(writeErr)
-        }
-        _ = nWrite
-        if readErr != nil {
-            break
-        }
-    }
-    cw.Close()
-    dr := NewDecompressionReader(bytes.NewBuffer(compressedData.Bytes()))
-    var roundTrippedData bytes.Buffer
-    for {
-        var buffer [4096]byte
-        nRead, readErr := dr.Read(buffer[:])
-        if readErr != nil && readErr != io.EOF {
-            panic(readErr)
-        }
-        nWrite, writeErr := roundTrippedData.Write(buffer[:nRead])
-        if writeErr != nil || nWrite < nRead{
-            panic(writeErr)
-        }
-        if readErr != nil {
-            break
-        }
-    }
-    dr.Close()
-    if dataToCompress != string(roundTrippedData.Bytes()) {
-        t.Errorf(dataToCompress + " != " + string(roundTrippedData.Bytes()))
-    }
-    if string(compressedData.Bytes()[1:5]) != "7zXZ" {
-        t.Errorf("Invalid 7z signature")
-    }
-    if len(compressedData.Bytes()) > len(dataToCompress) {
-        t.Errorf("Data to compress got bigger after xzing")
-    }
+	initialReader := bytes.NewBufferString(dataToCompress)
+	var compressedData bytes.Buffer
+	cw := NewWriter(&compressedData)
+	for {
+		var buffer [4096]byte
+		nRead, readErr := initialReader.Read(buffer[:])
+		if readErr != nil && readErr != io.EOF {
+			panic(readErr)
+		}
+		nWrite, writeErr := cw.Write(buffer[:nRead])
+		if writeErr != nil {
+			panic(writeErr)
+		}
+		_ = nWrite
+		if readErr != nil {
+			break
+		}
+	}
+	cw.Close()
+	dr := NewReader(bytes.NewBuffer(compressedData.Bytes()))
+	var roundTrippedData bytes.Buffer
+	for {
+		var buffer [4096]byte
+		nRead, readErr := dr.Read(buffer[:])
+		if readErr != nil && readErr != io.EOF {
+			panic(readErr)
+		}
+		nWrite, writeErr := roundTrippedData.Write(buffer[:nRead])
+		if writeErr != nil || nWrite < nRead {
+			panic(writeErr)
+		}
+		if readErr != nil {
+			break
+		}
+	}
+	dr.Close()
+	if dataToCompress != string(roundTrippedData.Bytes()) {
+		t.Errorf(dataToCompress + " != " + string(roundTrippedData.Bytes()))
+	}
+	if string(compressedData.Bytes()[1:5]) != "7zXZ" {
+		t.Errorf("Invalid 7z signature")
+	}
+	if len(compressedData.Bytes()) > len(dataToCompress) {
+		t.Errorf("Data to compress got bigger after xzing")
+	}
 }
