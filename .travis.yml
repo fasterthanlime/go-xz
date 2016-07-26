@@ -2,6 +2,10 @@
 language: go
 go: 1.6.3
 
+addons:
+  apt:
+    packages:
+      - liblzma-dev
 
 install:
   - go get -v ./...
