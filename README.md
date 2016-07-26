@@ -1,4 +1,4 @@
-# go-xz
+# go-xz [![Build Status](https://travis-ci.org/fasterthanlime/go-xz.svg?branch=master)](https://travis-ci.org/fasterthanlime/go-xz)
 
 A small wrapper around libxz to generate lzma2-compressed data from golang
 
